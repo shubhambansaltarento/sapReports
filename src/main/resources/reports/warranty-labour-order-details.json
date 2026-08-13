@@ -1,0 +1,109 @@
+{
+  "reportCode": "WARRANTY_LABOUR_ORDER_DETAILS",
+  "title": "Order Details",
+  "configVersion": "2026.08.1",
+  "reportGroup": "WARRANTY_LABOUR_CHARGE",
+  "groupLabel": "Warranty Labour Charge",
+  "groupOrder": 1,
+  "parameters": [
+    {
+      "name": "orderCreatedDateFrom",
+      "label": "Order Created Date from",
+      "control": "DATE",
+      "dataType": "DATE",
+      "required": true,
+      "layout": { "row": 1, "span": 3 }
+    },
+    {
+      "name": "orderCreatedDateTo",
+      "label": "To",
+      "control": "DATE",
+      "dataType": "DATE",
+      "required": true,
+      "layout": { "row": 1, "span": 3 }
+    }
+  ],
+  "dateRangeConstraints": [
+    { "fromField": "orderCreatedDateFrom", "toField": "orderCreatedDateTo", "maxRangeDays": 366 }
+  ],
+  // Column 1 of the source screen has a radio button with no visible consumer in the screenshot and no
+  // ActionScope.SELECTION action defined yet — reserved for a future bulk-on-selected-row(s) action;
+  // deliberately not modeled as a column here since it has no defined behavior today.
+  "columnGroups": [
+    {
+      "key": "base",
+      "label": "Order Details",
+      "visibleWhen": null,
+      "columns": [
+        { "field": "orderNumber", "label": "Order number", "dataType": "string", "align": "left", "sortable": true },
+        { "field": "referenceCreditMemoNo", "label": "Reference Credit memo no.", "dataType": "string", "align": "left", "sortable": true },
+        { "field": "labourAmount", "label": "Labour Amount", "dataType": "decimal", "format": "#,##0.0000", "align": "right", "aggregate": "SUM" },
+        { "field": "currency", "label": "Currency", "dataType": "string", "align": "left" },
+        { "field": "dealerCode", "label": "Dealer Code", "dataType": "string", "align": "left" },
+        {
+          "field": "dealerInvoice", "label": "Dealer Invoice", "dataType": "string", "align": "left",
+          "editable": true,
+          "editValidation": { "requiredWhen": { "field": "invoiceDate", "op": "notEmpty" } }
+        },
+        {
+          "field": "invoiceDate", "label": "Invoice Date", "dataType": "date", "format": "dd.MM.yyyy", "align": "left",
+          "editable": true,
+          "editValidation": { "requiredWhen": { "field": "dealerInvoice", "op": "notEmpty" } }
+        },
+        {
+          "field": "invoicePdf", "label": "Invoice PDF", "columnType": "ACTION",
+          "action": { "actionKey": "downloadInvoicePdf", "icon": "pdf",
+                      "enabledWhen": { "field": "dealerInvoice", "op": "notEmpty" } }
+        },
+        {
+          "field": "eSign", "label": "E-Sign", "columnType": "ACTION",
+          "action": { "actionKey": "initiateESign", "icon": "esign",
+                      "enabledWhen": { "op": "and", "conditions": [
+                          { "field": "dealerInvoice", "op": "notEmpty" },
+                          { "field": "eSignatureStatus", "op": "neq", "value": "COMPLETED" } ] } }
+        },
+        {
+          "field": "pushToTvsm", "label": "Push the E-Sign Document to TVSM", "columnType": "ACTION",
+          "action": { "actionKey": "pushESignToTvsm", "icon": "push",
+                      "enabledWhen": { "field": "eSignatureStatus", "op": "eq", "value": "COMPLETED" } }
+        },
+        {
+          "field": "eSignatureStatus", "label": "E-Signature Status", "dataType": "enum", "columnType": "STATUS",
+          "displayHints": {
+            "COMPLETED": { "label": "Completed", "style": "success" },
+            "PENDING": { "label": "Pending", "style": "danger" },
+            "NOT_STARTED": { "label": "", "style": "none" }
+          }
+        }
+      ]
+    }
+  ],
+  "rowKey": { "fields": ["orderNumber", "referenceCreditMemoNo"], "separator": "|" },
+  "actions": [
+    {
+      "actionKey": "saveOrderDetails", "label": "Save", "scope": "BULK",
+      "appliesTo": "EDITED_ROWS", "sideEffecting": false, "refreshAfter": true
+    },
+    {
+      "actionKey": "downloadInvoicePdf", "label": "Download Invoice PDF", "scope": "ROW",
+      "sideEffecting": false, "returns": "DOCUMENT",
+      "enabledWhen": { "field": "dealerInvoice", "op": "notEmpty" }
+    },
+    {
+      "actionKey": "initiateESign", "label": "E-Sign", "scope": "ROW",
+      "sideEffecting": true, "idempotent": true,
+      "enabledWhen": { "op": "and", "conditions": [
+          { "field": "dealerInvoice", "op": "notEmpty" },
+          { "field": "eSignatureStatus", "op": "neq", "value": "COMPLETED" } ] },
+      "refreshAfter": true
+    },
+    {
+      "actionKey": "pushESignToTvsm", "label": "Push the E-Sign Document to TVSM", "scope": "ROW",
+      "sideEffecting": true, "idempotent": true,
+      "enabledWhen": { "field": "eSignatureStatus", "op": "eq", "value": "COMPLETED" },
+      "confirm": { "title": "Push to TVSM?", "message": "This cannot be undone." },
+      "refreshAfter": true
+    }
+  ],
+  "paging": { "defaultPageSize": 50, "maxPageSize": 500 }
+}

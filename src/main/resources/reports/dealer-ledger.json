@@ -1,0 +1,65 @@
+{
+  "reportCode": "DEALER_LEDGER",
+  "title": "Dealer Ledger",
+  "configVersion": "2026.08.1",
+  "parameters": [
+    {
+      "name": "companyCode",
+      "label": "Company Code",
+      "control": "SELECT",
+      "dataType": "STRING",
+      "required": true,
+      "defaultValue": "TVSL",
+      "options": [
+        { "value": "TVSL", "label": "TVS Lucas" }
+      ],
+      "layout": { "row": 1, "span": 4 }
+    },
+    {
+      "name": "postingDate",
+      "label": "Date",
+      "control": "DATE_RANGE",
+      "dataType": null,
+      "required": true,
+      "validation": {
+        "minDate": "2020-04-01",
+        "maxDate": "$TODAY",
+        "maxRangeDays": 366,
+        "requireBothBounds": true
+      },
+      "layout": { "row": 2, "span": 6 }
+    },
+    {
+      "name": "withCblDetails",
+      "label": "With CBL Details",
+      "control": "CHECKBOX",
+      "dataType": "BOOLEAN",
+      "required": false,
+      "defaultValue": false,
+      "layout": { "row": 3, "span": 2 }
+    }
+  ],
+  "columnGroups": [
+    {
+      "key": "base",
+      "label": "Ledger",
+      "visibleWhen": null,
+      "columns": [
+        { "field": "postingDate", "label": "Posting Date", "dataType": "date", "format": "dd-MM-yyyy", "align": "left", "sortable": true },
+        { "field": "debit", "label": "Debit", "dataType": "decimal", "format": "#,##0.00", "align": "right", "aggregate": "SUM" },
+        { "field": "credit", "label": "Credit", "dataType": "decimal", "format": "#,##0.00", "align": "right", "aggregate": "SUM" },
+        { "field": "runningBalance", "label": "Balance", "dataType": "decimal", "format": "#,##0.00", "align": "right", "aggregate": null }
+      ]
+    },
+    {
+      "key": "cbl",
+      "label": "CBL Details",
+      "visibleWhen": { "field": "withCblDetails", "op": "eq", "value": true },
+      "columns": [
+        { "field": "cblRefNo", "label": "CBL Ref No", "dataType": "string", "align": "left", "sortable": false }
+      ]
+    }
+  ],
+  "export": { "formats": ["XLSX", "PDF"] },
+  "paging": { "defaultPageSize": 50, "maxPageSize": 1000 }
+}

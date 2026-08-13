@@ -1,0 +1,95 @@
+{
+  "reportCode": "DEALER_SHIPMENT_CLOSURE",
+  "title": "Dealer Shipment Closure",
+  "configVersion": "2026.08.1",
+  "parameters": [
+    {
+      "name": "dateFrom",
+      "label": "DATE",
+      "control": "DATE",
+      "dataType": "DATE",
+      "required": true,
+      "layout": { "row": 1, "span": 3 }
+    },
+    {
+      "name": "dateTo",
+      "label": "TO",
+      "control": "DATE",
+      "dataType": "DATE",
+      "required": true,
+      "layout": { "row": 1, "span": 3 }
+    },
+    {
+      "name": "divisionVehicle",
+      "label": "VEHICLE",
+      "control": "CHECKBOX",
+      "dataType": "BOOLEAN",
+      "required": false,
+      "defaultValue": false,
+      "layout": { "row": 2, "span": 2 }
+    },
+    {
+      "name": "divisionSpares",
+      "label": "SPARES",
+      "control": "CHECKBOX",
+      "dataType": "BOOLEAN",
+      "required": false,
+      "defaultValue": false,
+      "layout": { "row": 2, "span": 2 }
+    }
+  ],
+  "parameterGroups": [
+    {
+      "key": "division",
+      "label": "Select Division",
+      "hint": "Select Only one Check Box at a Time",
+      "members": ["divisionVehicle", "divisionSpares"],
+      "constraint": "EXACTLY_ONE",
+      "errorCode": "EXACTLY_ONE_REQUIRED",
+      "resolvesTo": {
+        "targetField": "division",
+        "valueByMember": { "divisionVehicle": "VEHICLE", "divisionSpares": "SPARES" }
+      }
+    }
+  ],
+  "dateRangeConstraints": [
+    { "fromField": "dateFrom", "toField": "dateTo", "maxRangeDays": 90 }
+  ],
+  "columnGroups": [
+    {
+      "key": "base",
+      "label": "Dealer Shipment Closure Output Details",
+      "visibleWhen": null,
+      "columns": [
+        { "field": "invoiceNo", "label": "INVOICE NO", "dataType": "string", "align": "left", "sortable": true },
+        { "field": "shipmentNo", "label": "SHIPMENT NO", "dataType": "string", "align": "left", "sortable": true },
+        { "field": "date", "label": "DATE", "dataType": "date", "format": "dd-MM-yyyy", "align": "left", "sortable": true },
+        {
+          "field": "acknowledged", "label": "", "dataType": "boolean", "align": "center", "sortable": false,
+          "columnType": "CHECKBOX", "editable": true
+        }
+      ]
+    }
+  ],
+  "rowKey": { "fields": ["invoiceNo", "shipmentNo"], "separator": "|" },
+  "actions": [
+    {
+      "actionKey": "acknowledgeShipments",
+      "label": "Update",
+      "scope": "BULK",
+      "appliesTo": "EDITED_ROWS",
+      "sideEffecting": true,
+      "idempotent": true,
+      "confirm": { "title": "Confirm goods acknowledgement?", "message": "Acknowledged shipments cannot be reverted." },
+      "refreshAfter": true
+    },
+    {
+      "actionKey": "clear",
+      "label": "Clear",
+      "scope": "CLIENT_ONLY",
+      "sideEffecting": false,
+      "refreshAfter": false
+    }
+  ],
+  "paging": { "defaultPageSize": 50, "maxPageSize": 500 }
+}

@@ -1,0 +1,485 @@
+openapi: 3.0.3
+info:
+  title: Dynpro Dealer Detail Service API
+  description: >
+    Design-first OpenAPI specification for the standalone dynpro service.
+    Consumed by an External UI application that is embedded inside TVS DMS.
+    See SPEC.md and security.md in this same folder for the full functional
+    and security rationale, including open questions marked TBD below.
+  version: 0.1.0-draft
+servers:
+  - url: /api/v1
+    description: Base path for all endpoints (environment host TBD)
+
+tags:
+  - name: Token Verification
+    description: Proxy to the external token verification service.
+  - name: Dealer Details
+    description: Retrieval of dealer master data.
+  - name: Details
+    description: >
+      Generic "Get Detail" API reused across the report list in reports-overview.md §2
+      (SPEC.md §4.3).
+  - name: Search Parameters
+    description: >
+      Generic search-filter metadata API reused across the same report list
+      (SPEC.md §4.4).
+
+paths:
+  /tokens/verification:
+    post:
+      tags: [Token Verification]
+      summary: Verify a caller-supplied token against the external verification service
+      description: >
+        TBD: exact contract of the external verification service is not yet available
+        (SPEC.md §8.5). Request/response below is a placeholder shape sufficient to
+        unblock design of the rest of the API; field names inside `claims` and `raw`
+        are expected to change once the real contract is known. On success, also mints
+        our own JWT (jwt-auth.md) returned as `accessToken` — used as the Bearer token
+        on every other endpoint in this spec.
+      operationId: verifyToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenVerificationRequest'
+      responses:
+        '200':
+          description: Verification completed (result may still be valid=false)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenVerificationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          description: External Token Verification Service unavailable/timed out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /dealers/{dealerCode}:
+    get:
+      tags: [Dealer Details]
+      summary: Get dealer details by dealer code
+      description: >
+        TBD (SPEC.md §8.4/§8.7): whether this is a verbatim pass-through of the
+        upstream Dealer Details Service, and whether `dealerCode` always originates
+        from verified-token claims or may be supplied directly by the External UI.
+      operationId: getDealerDetails
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dealerCode
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Dealer code identifying the dealer to fetch.
+      responses:
+        '200':
+          description: Dealer details found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerDetails'
+        '404':
+          description: Dealer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: External Dealer Details Service unavailable/timed out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /details:
+    post:
+      tags: [Details]
+      summary: Generic Get Detail API (one design, reused across 8 UI places)
+      description: >
+        TBD (SPEC.md §8.2 / §9.1): the 8 real `detailType` values, and their
+        per-type parameter and response shapes, are not yet known. `DETAIL_TYPE_1`
+        through `DETAIL_TYPE_8` are placeholders to be renamed once the actual
+        screens/places are provided. `parameters` and the response `data` are
+        intentionally freeform (`additionalProperties: true`) until then.
+      operationId: getDetail
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetailRequest'
+      responses:
+        '200':
+          description: Detail retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No detail found for the given type/parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /search-parameters:
+    post:
+      tags: [Search Parameters]
+      summary: Generic Search Parameters API (one design, 8 places)
+      description: >
+        TBD (SPEC.md §8.1 / §8.3 / §9.2): working interpretation is "retrieve the
+        filter/lookup metadata for a search screen," not a literal revert/undo
+        action — pending confirmation. The 8 real `searchType` values and whether
+        they map 1:1 to the 8 `detailType` values above are also unconfirmed.
+      operationId: getSearchParameters
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchParametersRequest'
+      responses:
+        '200':
+          description: Search parameter/filter metadata retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchParametersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+components:
+  responses:
+    BadRequest:
+      description: Request failed validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT issued by dynpro itself (jwt-auth.md), returned as `accessToken` from
+        POST /tokens/verification on success. NOT a third-party IdP token. Applied
+        to every operation below except verifyToken, which is where it's minted.
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 400
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+        path:
+          type: string
+        correlationId:
+          type: string
+      required: [timestamp, status, code, message, path, correlationId]
+
+    TokenVerificationRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Opaque token supplied by the External UI, originating from TVS DMS.
+          maxLength: 4096
+      required: [token]
+
+    TokenVerificationClaims:
+      type: object
+      description: >
+        PLACEHOLDER shape (SPEC.md §8.5) — field names/presence to be confirmed
+        once the real external verification service contract is available.
+      properties:
+        dealerCode:
+          type: string
+          nullable: true
+        userId:
+          type: string
+          nullable: true
+        userName:
+          type: string
+          nullable: true
+        roles:
+          type: array
+          items:
+            type: string
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+      additionalProperties: true
+
+    TokenVerificationResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        verifiedAt:
+          type: string
+          format: date-time
+        claims:
+          $ref: '#/components/schemas/TokenVerificationClaims'
+        reasonCode:
+          type: string
+          nullable: true
+          description: Populated when valid=false (e.g. EXPIRED, MALFORMED, REVOKED). Values TBD.
+        accessToken:
+          type: string
+          nullable: true
+          description: >
+            dynpro-issued JWT (jwt-auth.md), present only when valid=true. Send as
+            `Authorization: Bearer <accessToken>` on every other endpoint in this spec.
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Expiry of accessToken. Proposed TTL 15-30 min — see jwt-auth.md §4 (open question).
+      required: [valid, verifiedAt]
+
+    DealerDetails:
+      type: object
+      description: >
+        PLACEHOLDER field set (SPEC.md §8.4/§8.7) — pending confirmation of whether
+        this is a curated FE contract or a pass-through of the upstream service.
+        additionalProperties:true allows upstream fields to flow through unmodified
+        in the meantime (see security.md §11 on reviewing new fields before they're
+        silently exposed).
+      properties:
+        dealerCode:
+          type: string
+        dealerName:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        pincode:
+          type: string
+          nullable: true
+        gstin:
+          type: string
+          nullable: true
+        panNumber:
+          type: string
+          nullable: true
+        dealerType:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        region:
+          type: string
+          nullable: true
+        contactPerson:
+          type: string
+          nullable: true
+        contactEmail:
+          type: string
+          nullable: true
+        contactPhone:
+          type: string
+          nullable: true
+      required: [dealerCode]
+      additionalProperties: true
+
+    DetailType:
+      type: string
+      description: >
+        Report keys, per reports-overview.md §2. Count/naming still open (see that
+        doc's count note re: "8" vs the 10 listed here) — expect this list to change.
+      enum:
+        - DEALER_LEDGER
+        - BILLING
+        - GOODS_ACKNOWLEDGEMENT
+        - WARRANTY_RECONCILIATION
+        - WARRANTY_LABOUR_TAX_INVOICE_REPORT
+        - WARRANTY_LABOUR_ORDER_REPORT
+        - WARRANTY_COST_REPORT
+        - PARTS_PACKING_LIST
+        - VOR_PRINT
+        - PQM
+
+    DetailRequest:
+      type: object
+      properties:
+        detailType:
+          $ref: '#/components/schemas/DetailType'
+        parameters:
+          type: object
+          description: >
+            Report-specific search parameters. Freeform until each report's
+            reports-overview.md §6 spec is filled in.
+          additionalProperties: true
+      required: [detailType, parameters]
+
+    DetailResponse:
+      type: object
+      properties:
+        detailType:
+          $ref: '#/components/schemas/DetailType'
+        data:
+          $ref: '#/components/schemas/ReportResult'
+      required: [detailType, data]
+
+    ReportResult:
+      type: object
+      description: >
+        Common tabular report result shape (reports-overview.md §4), shared by all
+        reports so the External UI can use one generic grid component.
+      properties:
+        reportKey:
+          $ref: '#/components/schemas/DetailType'
+        generatedAt:
+          type: string
+          format: date-time
+        parameters:
+          type: object
+          additionalProperties: true
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              label:
+                type: string
+              type:
+                type: string
+                description: Same vocabulary as FilterFieldType (TEXT/NUMBER/DATE/...).
+            required: [key, label, type]
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        totalRows:
+          type: integer
+          nullable: true
+          description: Pagination proposal — open question, see reports-overview.md §4.
+        page:
+          type: integer
+          nullable: true
+        pageSize:
+          type: integer
+          nullable: true
+      required: [reportKey, generatedAt, columns, rows]
+
+    SearchType:
+      type: string
+      description: Same enum as DetailType (reports-overview.md §1 confirms the 1:1 mapping).
+      enum:
+        - DEALER_LEDGER
+        - BILLING
+        - GOODS_ACKNOWLEDGEMENT
+        - WARRANTY_RECONCILIATION
+        - WARRANTY_LABOUR_TAX_INVOICE_REPORT
+        - WARRANTY_LABOUR_ORDER_REPORT
+        - WARRANTY_COST_REPORT
+        - PARTS_PACKING_LIST
+        - VOR_PRINT
+        - PQM
+
+    SearchParametersRequest:
+      type: object
+      properties:
+        searchType:
+          $ref: '#/components/schemas/SearchType'
+        context:
+          type: object
+          description: Optional scoping parameters (e.g. dealer code) narrowing available filters.
+          additionalProperties: true
+      required: [searchType]
+
+    FilterFieldType:
+      type: string
+      description: PLACEHOLDER set of supported filter UI control types.
+      enum:
+        - TEXT
+        - NUMBER
+        - DATE
+        - DATE_RANGE
+        - SELECT
+        - MULTI_SELECT
+
+    FilterOption:
+      type: object
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+      required: [value, label]
+
+    FilterDefinition:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field key the External UI should submit back (e.g. as a detail parameter).
+        label:
+          type: string
+          description: Human-readable label for the filter control.
+        type:
+          $ref: '#/components/schemas/FilterFieldType'
+        required:
+          type: boolean
+          default: false
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterOption'
+          nullable: true
+          description: Present when type is SELECT/MULTI_SELECT.
+      required: [field, label, type, required]
+
+    SearchParametersResponse:
+      type: object
+      properties:
+        searchType:
+          $ref: '#/components/schemas/SearchType'
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterDefinition'
+      required: [searchType, filters]
+
+# NOTE: platform auth is now decided (security.md §2 / jwt-auth.md) — dynpro-issued
+# JWT bearer, applied per-operation above (bearerAuth on every endpoint except
+# verifyToken, which explicitly declares `security: []` since that's where the
+# token is minted, not validated).

@@ -1,0 +1,51 @@
+{
+  "reportCode": "WARRANTY_LABOUR_REPORT",
+  "title": "Report",
+  "configVersion": "2026.08.1",
+  "reportGroup": "WARRANTY_LABOUR_CHARGE",
+  "groupLabel": "Warranty Labour Charge",
+  "groupOrder": 2,
+  "parameters": [
+    {
+      "name": "orderDateFrom",
+      "label": "Order Date: From",
+      "control": "DATE",
+      "dataType": "DATE",
+      "required": true,
+      "layout": { "row": 1, "span": 3 }
+    },
+    {
+      "name": "orderDateTo",
+      "label": "To",
+      "control": "DATE",
+      "dataType": "DATE",
+      "required": true,
+      "layout": { "row": 1, "span": 3 }
+    },
+    {
+      "name": "salesOrganisation",
+      "label": "Sales Organisation",
+      "control": "LOOKUP",
+      "dataType": "STRING",
+      "required": true,
+      "multiple": false,
+      "lookup": {
+        "endpoint": "/api/v1/reports/WARRANTY_LABOUR_REPORT/lookups/salesOrganisation",
+        "minChars": 0,
+        "pageSize": 25,
+        "valueField": "value",
+        "labelField": "label"
+      },
+      "layout": { "row": 2, "span": 3 }
+    }
+  ],
+  "dateRangeConstraints": [
+    { "fromField": "orderDateFrom", "toField": "orderDateTo", "maxRangeDays": 366 }
+  ],
+  // TODO: columns pending — the source screenshot shows only the input panel, no results grid.
+  // Do not invent columns; this report is scaffolded (parameters + lookup + validation only)
+  // until the real output columns are sourced.
+  "columnGroups": [],
+  "actions": [],
+  "paging": { "defaultPageSize": 50, "maxPageSize": 500 }
+}
