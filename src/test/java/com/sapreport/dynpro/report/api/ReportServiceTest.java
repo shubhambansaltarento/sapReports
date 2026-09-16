@@ -36,7 +36,7 @@ class ReportServiceTest {
 
     private ReportService reportService;
 
-    private static final String CONFIG_VERSION = "2026.09.2";
+    private static final String CONFIG_VERSION = "2026.09.3";
 
     @BeforeEach
     void setUp() throws IOException {

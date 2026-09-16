@@ -163,6 +163,11 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
         row.put("debit", new BigDecimal(debit));
         row.put("credit", new BigDecimal(credit));
         row.put("cblRefNo", null);
+        row.put("oeRefNo", null);
+        row.put("spRefNo", null);
+        row.put("acRefNo", null);
+        row.put("evRefNo", null);
+        row.put("acwshRefNo", null);
         return row;
     }
 
@@ -180,6 +185,11 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
         row.put("debit", new BigDecimal(debit));
         row.put("credit", new BigDecimal(credit));
         row.put("cblRefNo", "RV".equals(docType) ? "CBL-" + docReferenceNo : null);
+        row.put("oeRefNo", null);
+        row.put("spRefNo", null);
+        row.put("acRefNo", null);
+        row.put("evRefNo", null);
+        row.put("acwshRefNo", null);
         return row;
     }
 

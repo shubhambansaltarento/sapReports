@@ -1,7 +1,7 @@
 {
   "reportCode": "DEALER_LEDGER",
   "title": "Dealer Ledger",
-  "configVersion": "2026.09.2",
+  "configVersion": "2026.09.3",
   "parameters": [
     {
       "name": "dealerCode",
@@ -46,6 +46,51 @@
       "required": false,
       "defaultValue": false,
       "layout": { "row": 3, "span": 2 }
+    },
+    {
+      "name": "withOeDetails",
+      "label": "With OE Details",
+      "control": "CHECKBOX",
+      "dataType": "BOOLEAN",
+      "required": false,
+      "defaultValue": false,
+      "layout": { "row": 3, "span": 2 }
+    },
+    {
+      "name": "withSpDetails",
+      "label": "With SP Details",
+      "control": "CHECKBOX",
+      "dataType": "BOOLEAN",
+      "required": false,
+      "defaultValue": false,
+      "layout": { "row": 3, "span": 2 }
+    },
+    {
+      "name": "withAcDetails",
+      "label": "With AC Details",
+      "control": "CHECKBOX",
+      "dataType": "BOOLEAN",
+      "required": false,
+      "defaultValue": false,
+      "layout": { "row": 3, "span": 2 }
+    },
+    {
+      "name": "withEvDetails",
+      "label": "With EV Details",
+      "control": "CHECKBOX",
+      "dataType": "BOOLEAN",
+      "required": false,
+      "defaultValue": false,
+      "layout": { "row": 3, "span": 2 }
+    },
+    {
+      "name": "withAcwshDetails",
+      "label": "With ACWSH Details",
+      "control": "CHECKBOX",
+      "dataType": "BOOLEAN",
+      "required": false,
+      "defaultValue": false,
+      "layout": { "row": 3, "span": 2 }
     }
   ],
   "columnGroups": [
@@ -72,6 +117,46 @@
       "visibleWhen": { "field": "withCblDetails", "op": "eq", "value": true },
       "columns": [
         { "field": "cblRefNo", "label": "CBL Ref No", "dataType": "string", "align": "left", "sortable": false }
+      ]
+    },
+    {
+      "key": "oe",
+      "label": "OE Details",
+      "visibleWhen": { "field": "withOeDetails", "op": "eq", "value": true },
+      "columns": [
+        { "field": "oeRefNo", "label": "OE Ref No", "dataType": "string", "align": "left", "sortable": false }
+      ]
+    },
+    {
+      "key": "sp",
+      "label": "SP Details",
+      "visibleWhen": { "field": "withSpDetails", "op": "eq", "value": true },
+      "columns": [
+        { "field": "spRefNo", "label": "SP Ref No", "dataType": "string", "align": "left", "sortable": false }
+      ]
+    },
+    {
+      "key": "ac",
+      "label": "AC Details",
+      "visibleWhen": { "field": "withAcDetails", "op": "eq", "value": true },
+      "columns": [
+        { "field": "acRefNo", "label": "AC Ref No", "dataType": "string", "align": "left", "sortable": false }
+      ]
+    },
+    {
+      "key": "ev",
+      "label": "EV Details",
+      "visibleWhen": { "field": "withEvDetails", "op": "eq", "value": true },
+      "columns": [
+        { "field": "evRefNo", "label": "EV Ref No", "dataType": "string", "align": "left", "sortable": false }
+      ]
+    },
+    {
+      "key": "acwsh",
+      "label": "ACWSH Details",
+      "visibleWhen": { "field": "withAcwshDetails", "op": "eq", "value": true },
+      "columns": [
+        { "field": "acwshRefNo", "label": "ACWSH Ref No", "dataType": "string", "align": "left", "sortable": false }
       ]
     }
   ],
