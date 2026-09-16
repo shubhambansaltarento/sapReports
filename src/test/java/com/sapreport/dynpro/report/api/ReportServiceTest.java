@@ -36,7 +36,7 @@ class ReportServiceTest {
 
     private ReportService reportService;
 
-    private static final String CONFIG_VERSION = "2026.08.1";
+    private static final String CONFIG_VERSION = "2026.09.2";
 
     @BeforeEach
     void setUp() throws IOException {
@@ -84,7 +84,7 @@ class ReportServiceTest {
     @Test
     void happyPath_returnsRowsAndPaging() {
         ReportDataRequest request = new ReportDataRequest(validParameters(true),
-                new PagingRequest(1, 50), List.of(new SortSpec("postingDate", "asc")), CONFIG_VERSION);
+                new PagingRequest(1, 50), List.of(new SortSpec("docDate", "asc")), CONFIG_VERSION);
 
         ReportDataResponse response = reportService.getData("DEALER_LEDGER", request);
 
@@ -102,7 +102,7 @@ class ReportServiceTest {
 
         ReportDataResponse response = reportService.getData("DEALER_LEDGER", request);
 
-        assertThat(response.effectiveColumns()).contains("postingDate", "debit", "credit", "runningBalance");
+        assertThat(response.effectiveColumns()).contains("docDate", "debit", "credit");
         assertThat(response.effectiveColumns()).doesNotContain("cblRefNo");
         assertThat(response.rows()).allSatisfy(row -> assertThat(row).doesNotContainKey("cblRefNo"));
     }

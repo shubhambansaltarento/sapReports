@@ -23,9 +23,9 @@ class ClasspathReportMetadataRepositoryTest {
         ReportMetadata metadata = repository.findByReportCode("DEALER_LEDGER").orElseThrow();
 
         assertThat(metadata.title()).isEqualTo("Dealer Ledger");
-        assertThat(metadata.configVersion()).isEqualTo("2026.08.1");
+        assertThat(metadata.configVersion()).isEqualTo("2026.09.2");
         assertThat(metadata.parameters()).extracting(ParameterDefinition::name)
-                .containsExactly("companyCode", "postingDate", "withCblDetails");
+                .containsExactly("dealerCode", "companyCode", "postingDate", "withCblDetails");
         assertThat(metadata.columnGroups()).extracting(ColumnGroup::key).containsExactly("base", "cbl");
 
         ColumnGroup cblGroup = metadata.columnGroups().get(1);
