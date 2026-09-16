@@ -40,9 +40,9 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
                 .map(row -> project(row, request.effectiveColumns()))
                 .toList();
 
-        int fromIndex = Math.min((Math.max(request.page(), 1) - 1) * request.pageSize(), projected.size());
-        int toIndex = Math.min(fromIndex + request.pageSize(), projected.size());
-        List<Map<String, Object>> page = projected.subList(fromIndex, toIndex);
+        // Pagination is UI-controlled for DEALER_LEDGER (reports/dealer-ledge/
+        // dealer-ledger-pagination-2026-09-16_170000.md) — return every row in
+        // one page instead of slicing by request.page()/pageSize().
 
         BigDecimal totalDebit = filtered.stream()
                 .map(row -> (BigDecimal) row.get("debit"))
@@ -52,7 +52,7 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         Map<String, Object> totals = Map.of("debit", totalDebit, "credit", totalCredit);
 
-        return new ReportQueryResult(page, totals, projected.size(), Instant.now(), 5);
+        return new ReportQueryResult(projected, totals, projected.size(), Instant.now(), 5);
     }
 
     private List<Map<String, Object>> buildRows() {

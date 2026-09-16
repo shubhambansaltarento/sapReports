@@ -94,8 +94,14 @@ public class ReportService {
 
         List<Map<String, Object>> rows = attachRowIdentity(metadata, result.rows());
 
-        int totalPages = pageSize == 0 ? 0 : (int) Math.ceil(result.totalRows() / (double) pageSize);
-        PagingResponse pagingResponse = new PagingResponse(page, pageSize, result.totalRows(), totalPages);
+        // If the executor returned every row instead of slicing (e.g. UI-controlled
+        // pagination — reports/dealer-ledge/dealer-ledger-pagination-2026-09-16_170000.md),
+        // report a single page covering all rows rather than the requested pageSize.
+        int effectivePageSize = result.rows().size() == result.totalRows() && result.totalRows() > 0
+                ? (int) result.totalRows()
+                : pageSize;
+        int totalPages = effectivePageSize == 0 ? 0 : (int) Math.ceil(result.totalRows() / (double) effectivePageSize);
+        PagingResponse pagingResponse = new PagingResponse(page, effectivePageSize, result.totalRows(), totalPages);
         ResponseMeta meta = new ResponseMeta(Instant.now(), result.dataAsOf(), result.queryMs());
 
         return new ReportDataResponse(metadata.reportCode(), metadata.configVersion(), effectiveColumns,

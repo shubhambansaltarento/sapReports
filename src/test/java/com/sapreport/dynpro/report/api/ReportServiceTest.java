@@ -91,8 +91,13 @@ class ReportServiceTest {
         assertThat(response.reportCode()).isEqualTo("DEALER_LEDGER");
         assertThat(response.rows()).isNotEmpty();
         assertThat(response.paging().page()).isEqualTo(1);
-        assertThat(response.paging().pageSize()).isEqualTo(50);
         assertThat(response.paging().totalRows()).isGreaterThan(0);
+        // Pagination is UI-controlled for DEALER_LEDGER (dealer-ledger-pagination spec):
+        // the executor returns every row in one page, so pageSize mirrors totalRows and
+        // totalPages is always 1.
+        assertThat(response.paging().pageSize()).isEqualTo(response.paging().totalRows());
+        assertThat(response.paging().totalPages()).isEqualTo(1);
+        assertThat(response.rows()).hasSize((int) response.paging().totalRows());
     }
 
     @Test
