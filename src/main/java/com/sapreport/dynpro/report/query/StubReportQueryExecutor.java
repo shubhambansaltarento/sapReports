@@ -251,26 +251,41 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
 
     private List<Map<String, Object>> buildWarrantyCostRows() {
         List<Map<String, Object>> rows = new java.util.ArrayList<>();
-        rows.add(warrantyCostRow("WC26050001", "05-05-2026", "P-10023", "CLUTCH PLATE ASSY", "450.00", "1250.00"));
-        rows.add(warrantyCostRow("WC26051204", "18-05-2026", "P-10456", "FRONT BRAKE SHOE", "300.00", "780.50"));
-        rows.add(warrantyCostRow("WC26060342", "02-06-2026", "P-11002", "HEADLIGHT ASSEMBLY", "600.00", "2100.00"));
-        rows.add(warrantyCostRow("WC26061890", "20-06-2026", "P-10789", "SIDE STAND SWITCH", "150.00", "320.75"));
-        rows.add(warrantyCostRow("WC26070456", "10-07-2026", "P-11234", "CDI UNIT", "500.00", "1890.00"));
-        rows.add(warrantyCostRow("WC26071123", "25-07-2026", "P-10567", "REAR SHOCK ABSORBER", "700.00", "3200.00"));
-        rows.add(warrantyCostRow("WC26080234", "05-08-2026", "P-11890", "SPEEDOMETER CABLE", "100.00", "410.25"));
-        rows.add(warrantyCostRow("WC26081567", "22-08-2026", "P-10234", "CARBURETOR ASSY", "800.00", "4500.00"));
+        rows.add(warrantyCostRow("WC26050001", "28-04-2026", "05-05-2026", "P-10023", "CLUTCH PLATE ASSY", "450.00", "1250.00", 2));
+        rows.add(warrantyCostRow("WC26050512", "10-05-2026", "14-05-2026", "P-10678", "FUEL PUMP ASSY", "350.00", "1980.00", 1));
+        rows.add(warrantyCostRow("WC26051204", "13-05-2026", "18-05-2026", "P-10456", "FRONT BRAKE SHOE", "300.00", "780.50", 2));
+        rows.add(warrantyCostRow("WC26052078", "22-05-2026", "27-05-2026", "P-10912", "REAR TAIL LAMP", "200.00", "650.00", 1));
+        rows.add(warrantyCostRow("WC26060342", "28-05-2026", "02-06-2026", "P-11002", "HEADLIGHT ASSEMBLY", "600.00", "2100.00", 1));
+        rows.add(warrantyCostRow("WC26060877", "05-06-2026", "09-06-2026", "P-10345", "IGNITION COIL", "250.00", "980.00", 3));
+        rows.add(warrantyCostRow("WC26061890", "15-06-2026", "20-06-2026", "P-10789", "SIDE STAND SWITCH", "150.00", "320.75", 4));
+        rows.add(warrantyCostRow("WC26062456", "24-06-2026", "28-06-2026", "P-11123", "WHEEL BEARING SET", "400.00", "1450.00", 2));
+        rows.add(warrantyCostRow("WC26070456", "05-07-2026", "10-07-2026", "P-11234", "CDI UNIT", "500.00", "1890.00", 1));
+        rows.add(warrantyCostRow("WC26070911", "12-07-2026", "16-07-2026", "P-10098", "CHAIN SPROCKET KIT", "300.00", "1650.00", 1));
+        rows.add(warrantyCostRow("WC26071123", "20-07-2026", "25-07-2026", "P-10567", "REAR SHOCK ABSORBER", "700.00", "3200.00", 2));
+        rows.add(warrantyCostRow("WC26071688", "26-07-2026", "30-07-2026", "P-11456", "STARTER MOTOR ASSY", "550.00", "2750.00", 1));
+        rows.add(warrantyCostRow("WC26080234", "01-08-2026", "05-08-2026", "P-11890", "SPEEDOMETER CABLE", "100.00", "410.25", 3));
+        rows.add(warrantyCostRow("WC26080699", "07-08-2026", "11-08-2026", "P-10234", "CLUTCH CABLE", "150.00", "540.00", 2));
+        rows.add(warrantyCostRow("WC26081120", "13-08-2026", "17-08-2026", "P-11567", "REGULATOR RECTIFIER", "300.00", "1320.00", 1));
+        rows.add(warrantyCostRow("WC26081567", "18-08-2026", "22-08-2026", "P-10234", "CARBURETOR ASSY", "800.00", "4500.00", 1));
+        rows.add(warrantyCostRow("WC26081999", "23-08-2026", "27-08-2026", "P-10876", "BRAKE LEVER ASSY", "200.00", "690.00", 2));
+        rows.add(warrantyCostRow("WC26082345", "27-08-2026", "31-08-2026", "P-11298", "ODOMETER SENSOR", "250.00", "980.00", 1));
+        rows.add(warrantyCostRow("WC26082567", "29-08-2026", "31-08-2026", "P-10456", "FRONT BRAKE SHOE", "300.00", "780.50", 2));
+        rows.add(warrantyCostRow("WC26082789", "30-08-2026", "31-08-2026", "P-11002", "HEADLIGHT ASSEMBLY", "600.00", "2100.00", 1));
         return rows;
     }
 
-    private Map<String, Object> warrantyCostRow(String claimNo, String claimDate, String partNo,
-                                                 String partDescription, String laborCost, String partCost) {
+    private Map<String, Object> warrantyCostRow(String claimNo, String orderDate, String claimDate, String partNo,
+                                                 String partDescription, String laborCost, String partCost,
+                                                 int quantity) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("dealerCode", DEALER_CODE);
         row.put("dealerName", "PAWAN SARKAR AUTOMOBILES");
         row.put("claimNo", claimNo);
+        row.put("orderDate", orderDate);
         row.put("claimDate", claimDate);
         row.put("partNo", partNo);
         row.put("partDescription", partDescription);
+        row.put("quantity", quantity);
         BigDecimal labor = new BigDecimal(laborCost);
         BigDecimal part = new BigDecimal(partCost);
         row.put("laborCost", labor);

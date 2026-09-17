@@ -46,7 +46,9 @@
       "visibleWhen": null,
       "columns": [
         { "field": "dealerCode", "label": "Dealer Code", "dataType": "string", "align": "left", "sortable": true },
-        { "field": "dealerName", "label": "Dealer Name", "dataType": "string", "align": "left", "sortable": false }
+        { "field": "dealerName", "label": "Dealer Name", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "orderDate", "label": "Order Date", "dataType": "date", "format": "dd-MM-yyyy", "align": "left", "sortable": true },
+        { "field": "quantity", "label": "Quantity", "dataType": "integer", "align": "right", "sortable": false }
       ]
     }
   ],
