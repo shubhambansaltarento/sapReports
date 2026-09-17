@@ -16,9 +16,11 @@ import java.util.Map;
  * (e.g. via Swagger) before the real Databricks-backed implementation exists
  * (jdbc-connection.md). DEALER_LEDGER row values are transcribed from dealer
  * 10015's ledger extract (reports/dealer-ledge/spec.md) so the API response
- * matches what the Angular grid is expected to render. WARRANTY_COST rows are
- * dummy data for the same stub dealer (reports/warranty-cost/
- * warranty-cost-data-api-2026-09-17_140000.md).
+ * matches what the Angular grid is expected to render. WARRANTY_COST and
+ * WARRANTY_RECONCILLATION rows are dummy data for the same stub dealer
+ * (reports/warranty-cost/warranty-cost-data-api-2026-09-17_140000.md,
+ * reports/warranty-reconcillation/
+ * warranty-reconcillation-config-data-api-2026-09-17_100000.md).
  */
 @Component
 public class StubReportQueryExecutor implements ReportQueryExecutor {
@@ -31,6 +33,9 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
     public ReportQueryResult execute(ReportQueryRequest request) {
         if ("WARRANTY_COST".equals(request.reportCode())) {
             return executeWarrantyCost(request);
+        }
+        if ("WARRANTY_RECONCILLATION".equals(request.reportCode())) {
+            return executeWarrantyReconcillation(request);
         }
         if (!"DEALER_LEDGER".equals(request.reportCode())) {
             return new ReportQueryResult(List.of(), Map.of(), 0, Instant.now(), 0);
@@ -238,6 +243,33 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
                 .toList();
 
         return new ReportQueryResult(projected, totals, filtered.size(), Instant.now(), 4);
+    }
+
+    private ReportQueryResult executeWarrantyReconcillation(ReportQueryRequest request) {
+        List<Map<String, Object>> allRows = buildWarrantyReconcillationRows();
+
+        Object dealerCode = request.parameters().get("dealerCode");
+        List<Map<String, Object>> filtered = allRows.stream()
+                .filter(row -> dealerCode == null || String.valueOf(dealerCode).isBlank()
+                        || row.get("dealerCode").equals(String.valueOf(dealerCode)))
+                .toList();
+
+        int fromIndex = Math.min((request.page() - 1) * request.pageSize(), filtered.size());
+        int toIndex = Math.min(fromIndex + request.pageSize(), filtered.size());
+        List<Map<String, Object>> paged = filtered.subList(fromIndex, toIndex);
+
+        List<Map<String, Object>> projected = paged.stream()
+                .map(row -> project(row, request.effectiveColumns()))
+                .toList();
+
+        return new ReportQueryResult(projected, Map.of(), filtered.size(), Instant.now(), 3);
+    }
+
+    private List<Map<String, Object>> buildWarrantyReconcillationRows() {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("dealerCode", DEALER_CODE);
+        row.put("dealerName", "PAWAN SARKAR AUTOMOBILES");
+        return List.of(row);
     }
 
     @SuppressWarnings("unchecked")
