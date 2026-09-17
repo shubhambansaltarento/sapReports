@@ -1,0 +1,57 @@
+{
+  "reportCode": "WARRANTY_COST",
+  "title": "Warranty Cost",
+  "configVersion": "2026.09.1",
+  "parameters": [
+    {
+      "name": "dealerCode",
+      "label": "Dealer Code",
+      "control": "TEXT",
+      "dataType": "STRING",
+      "required": false,
+      "defaultValue": null,
+      "layout": { "row": 1, "span": 4 }
+    },
+    {
+      "name": "companyCode",
+      "label": "Company Code",
+      "control": "SELECT",
+      "dataType": "STRING",
+      "required": true,
+      "defaultValue": "TVSL",
+      "options": [
+        { "value": "TVSL", "label": "TVS Lucas" }
+      ],
+      "layout": { "row": 1, "span": 4 }
+    },
+    {
+      "name": "claimDate",
+      "label": "Claim Date",
+      "control": "DATE_RANGE",
+      "dataType": null,
+      "required": true,
+      "validation": {
+        "minDate": "2020-04-01",
+        "maxDate": "$TODAY",
+        "maxRangeDays": 366,
+        "requireBothBounds": true
+      },
+      "layout": { "row": 2, "span": 6 }
+    }
+  ],
+  "columnGroups": [
+    {
+      "key": "base",
+      "label": "Warranty Cost",
+      "visibleWhen": null,
+      "columns": [
+        { "field": "dealerCode", "label": "Dealer Code", "dataType": "string", "align": "left", "sortable": true },
+        { "field": "dealerName", "label": "Dealer Name", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "orderDate", "label": "Order Date", "dataType": "date", "format": "dd-MM-yyyy", "align": "left", "sortable": true },
+        { "field": "quantity", "label": "Quantity", "dataType": "integer", "align": "right", "sortable": false }
+      ]
+    }
+  ],
+  "export": { "formats": ["XLSX", "PDF"] },
+  "paging": { "defaultPageSize": 50, "maxPageSize": 1000 }
+}
