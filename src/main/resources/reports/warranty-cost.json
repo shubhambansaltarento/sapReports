@@ -46,14 +46,7 @@
       "visibleWhen": null,
       "columns": [
         { "field": "dealerCode", "label": "Dealer Code", "dataType": "string", "align": "left", "sortable": true },
-        { "field": "dealerName", "label": "Dealer Name", "dataType": "string", "align": "left", "sortable": false },
-        { "field": "claimNo", "label": "Claim No.", "dataType": "string", "align": "left", "sortable": true },
-        { "field": "claimDate", "label": "Claim Date", "dataType": "date", "format": "dd-MM-yyyy", "align": "left", "sortable": true },
-        { "field": "partNo", "label": "Part No.", "dataType": "string", "align": "left", "sortable": false },
-        { "field": "partDescription", "label": "Part Description", "dataType": "string", "align": "left", "sortable": false },
-        { "field": "laborCost", "label": "Labor Cost", "dataType": "decimal", "format": "#,##0.00", "align": "right", "aggregate": "SUM" },
-        { "field": "partCost", "label": "Part Cost", "dataType": "decimal", "format": "#,##0.00", "align": "right", "aggregate": "SUM" },
-        { "field": "totalCost", "label": "Total Cost", "dataType": "decimal", "format": "#,##0.00", "align": "right", "aggregate": "SUM" }
+        { "field": "dealerName", "label": "Dealer Name", "dataType": "string", "align": "left", "sortable": false }
       ]
     }
   ],

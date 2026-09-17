@@ -4,26 +4,34 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Placeholder {@link ReportQueryExecutor} returning canned in-memory data
- * for DEALER_LEDGER so the API is exercisable end-to-end (e.g. via Swagger)
- * before the real Databricks-backed implementation exists (jdbc-connection.md).
- * Row values are transcribed from dealer 10015's ledger extract
- * (reports/dealer-ledge/spec.md) so the API response matches what the
- * Angular grid is expected to render.
+ * for DEALER_LEDGER and WARRANTY_COST so the API is exercisable end-to-end
+ * (e.g. via Swagger) before the real Databricks-backed implementation exists
+ * (jdbc-connection.md). DEALER_LEDGER row values are transcribed from dealer
+ * 10015's ledger extract (reports/dealer-ledge/spec.md) so the API response
+ * matches what the Angular grid is expected to render. WARRANTY_COST rows are
+ * dummy data for the same stub dealer (reports/warranty-cost/
+ * warranty-cost-data-api-2026-09-17_140000.md).
  */
 @Component
 public class StubReportQueryExecutor implements ReportQueryExecutor {
 
     private static final String DEALER_CODE = "10015";
     private static final String CCA = "ZTS1";
+    private static final DateTimeFormatter ROW_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     @Override
     public ReportQueryResult execute(ReportQueryRequest request) {
+        if ("WARRANTY_COST".equals(request.reportCode())) {
+            return executeWarrantyCost(request);
+        }
         if (!"DEALER_LEDGER".equals(request.reportCode())) {
             return new ReportQueryResult(List.of(), Map.of(), 0, Instant.now(), 0);
         }
@@ -190,6 +198,84 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
         row.put("acRefNo", null);
         row.put("evRefNo", null);
         row.put("acwshRefNo", null);
+        return row;
+    }
+
+    private ReportQueryResult executeWarrantyCost(ReportQueryRequest request) {
+        List<Map<String, Object>> allRows = buildWarrantyCostRows();
+
+        Object dealerCode = request.parameters().get("dealerCode");
+        Object claimDate = request.parameters().get("claimDate");
+        LocalDate from = claimDateBound(claimDate, "from");
+        LocalDate to = claimDateBound(claimDate, "to");
+
+        List<Map<String, Object>> filtered = allRows.stream()
+                .filter(row -> dealerCode == null || String.valueOf(dealerCode).isBlank()
+                        || row.get("dealerCode").equals(String.valueOf(dealerCode)))
+                .filter(row -> {
+                    LocalDate rowDate = LocalDate.parse((String) row.get("claimDate"), ROW_DATE_FORMAT);
+                    return (from == null || !rowDate.isBefore(from)) && (to == null || !rowDate.isAfter(to));
+                })
+                .toList();
+
+        BigDecimal totalLabor = filtered.stream()
+                .map(row -> (BigDecimal) row.get("laborCost"))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPart = filtered.stream()
+                .map(row -> (BigDecimal) row.get("partCost"))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCost = filtered.stream()
+                .map(row -> (BigDecimal) row.get("totalCost"))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Map<String, Object> totals = Map.of("laborCost", totalLabor, "partCost", totalPart, "totalCost", totalCost);
+
+        int fromIndex = Math.min((request.page() - 1) * request.pageSize(), filtered.size());
+        int toIndex = Math.min(fromIndex + request.pageSize(), filtered.size());
+        List<Map<String, Object>> paged = filtered.subList(fromIndex, toIndex);
+
+        List<Map<String, Object>> projected = paged.stream()
+                .map(row -> project(row, request.effectiveColumns()))
+                .toList();
+
+        return new ReportQueryResult(projected, totals, filtered.size(), Instant.now(), 4);
+    }
+
+    @SuppressWarnings("unchecked")
+    private LocalDate claimDateBound(Object claimDate, String bound) {
+        if (!(claimDate instanceof Map<?, ?> range)) {
+            return null;
+        }
+        Object value = ((Map<String, Object>) range).get(bound);
+        return value == null ? null : LocalDate.parse(String.valueOf(value));
+    }
+
+    private List<Map<String, Object>> buildWarrantyCostRows() {
+        List<Map<String, Object>> rows = new java.util.ArrayList<>();
+        rows.add(warrantyCostRow("WC26050001", "05-05-2026", "P-10023", "CLUTCH PLATE ASSY", "450.00", "1250.00"));
+        rows.add(warrantyCostRow("WC26051204", "18-05-2026", "P-10456", "FRONT BRAKE SHOE", "300.00", "780.50"));
+        rows.add(warrantyCostRow("WC26060342", "02-06-2026", "P-11002", "HEADLIGHT ASSEMBLY", "600.00", "2100.00"));
+        rows.add(warrantyCostRow("WC26061890", "20-06-2026", "P-10789", "SIDE STAND SWITCH", "150.00", "320.75"));
+        rows.add(warrantyCostRow("WC26070456", "10-07-2026", "P-11234", "CDI UNIT", "500.00", "1890.00"));
+        rows.add(warrantyCostRow("WC26071123", "25-07-2026", "P-10567", "REAR SHOCK ABSORBER", "700.00", "3200.00"));
+        rows.add(warrantyCostRow("WC26080234", "05-08-2026", "P-11890", "SPEEDOMETER CABLE", "100.00", "410.25"));
+        rows.add(warrantyCostRow("WC26081567", "22-08-2026", "P-10234", "CARBURETOR ASSY", "800.00", "4500.00"));
+        return rows;
+    }
+
+    private Map<String, Object> warrantyCostRow(String claimNo, String claimDate, String partNo,
+                                                 String partDescription, String laborCost, String partCost) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("dealerCode", DEALER_CODE);
+        row.put("dealerName", "PAWAN SARKAR AUTOMOBILES");
+        row.put("claimNo", claimNo);
+        row.put("claimDate", claimDate);
+        row.put("partNo", partNo);
+        row.put("partDescription", partDescription);
+        BigDecimal labor = new BigDecimal(laborCost);
+        BigDecimal part = new BigDecimal(partCost);
+        row.put("laborCost", labor);
+        row.put("partCost", part);
+        row.put("totalCost", labor.add(part));
         return row;
     }
 
