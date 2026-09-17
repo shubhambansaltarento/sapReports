@@ -18,9 +18,9 @@
       "control": "SELECT",
       "dataType": "STRING",
       "required": true,
-      "defaultValue": "TVSL",
+      "defaultValue": "TSL",
       "options": [
-        { "value": "TVSL", "label": "TVS Lucas" }
+        { "value": "TSL", "label": "TVS Lucas" }
       ],
       "layout": { "row": 1, "span": 4 }
     },
