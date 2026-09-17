@@ -107,8 +107,10 @@ class ReportServiceTest {
 
         ReportDataResponse response = reportService.getData("DEALER_LEDGER", request);
 
-        assertThat(response.effectiveColumns()).contains("docDate", "debit", "credit");
-        assertThat(response.effectiveColumns()).doesNotContain("cblRefNo");
+        assertThat(response.effectiveColumns()).extracting(EffectiveColumn::columnName)
+                .contains("docDate", "debit", "credit");
+        assertThat(response.effectiveColumns()).extracting(EffectiveColumn::columnName)
+                .doesNotContain("cblRefNo");
         assertThat(response.rows()).allSatisfy(row -> assertThat(row).doesNotContainKey("cblRefNo"));
     }
 
@@ -119,7 +121,8 @@ class ReportServiceTest {
 
         ReportDataResponse response = reportService.getData("DEALER_LEDGER", request);
 
-        assertThat(response.effectiveColumns()).contains("cblRefNo");
+        assertThat(response.effectiveColumns()).extracting(EffectiveColumn::columnName)
+                .contains("cblRefNo");
     }
 
     @Test

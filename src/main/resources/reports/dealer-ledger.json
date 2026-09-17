@@ -105,8 +105,8 @@
         { "field": "docDate", "label": "Doc. Date", "dataType": "date", "format": "dd-MM-yyyy", "align": "left", "sortable": true },
         { "field": "assignment", "label": "Assignment", "dataType": "string", "align": "left", "sortable": false },
         { "field": "cca", "label": "CCA", "dataType": "string", "align": "left", "sortable": false },
-        { "field": "textDec", "label": "Text Dec.", "dataType": "string", "align": "left", "sortable": false },
-        { "field": "vehicleNarration", "label": "Narration Veh. Description", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "textDec", "label": "Text Dec.", "dataType": "string", "align": "left", "sortable": false, "defaultVisible": false },
+        { "field": "vehicleNarration", "label": "Narration Veh. Description", "dataType": "string", "align": "left", "sortable": false, "defaultVisible": false },
         { "field": "debit", "label": "Debit Amount", "dataType": "decimal", "format": "#,##0.00", "align": "right", "aggregate": "SUM" },
         { "field": "credit", "label": "Credit Amount", "dataType": "decimal", "format": "#,##0.00", "align": "right", "aggregate": "SUM" }
       ]

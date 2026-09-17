@@ -40,7 +40,7 @@ class ReportActionServiceTest {
     @BeforeEach
     void setUp() {
         dealerInvoiceColumn = new ColumnDefinition("dealerInvoice", "Dealer Invoice", "string", null, "left",
-                false, null, ColumnType.DATA, true, null, null, Map.of());
+                false, null, ColumnType.DATA, true, null, null, Map.of(), null);
         ColumnDefinition dealerCodeColumn = new ColumnDefinition("dealerCode", "Dealer Code", "string", null, "left", false, null);
         ColumnGroup group = new ColumnGroup("base", "Base", null, List.of(dealerCodeColumn, dealerInvoiceColumn));
 
