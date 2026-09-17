@@ -278,11 +278,7 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
     private List<Map<String, Object>> buildWarrantyReconcillationRows() {
         List<Map<String, Object>> rows = new java.util.ArrayList<>();
         rows.add(warrantyReconcillationRow("05-05-2026"));
-        rows.add(warrantyReconcillationRow("18-05-2026"));
-        rows.add(warrantyReconcillationRow("02-06-2026"));
         rows.add(warrantyReconcillationRow("20-06-2026"));
-        rows.add(warrantyReconcillationRow("10-07-2026"));
-        rows.add(warrantyReconcillationRow("25-07-2026"));
         return rows;
     }
 
