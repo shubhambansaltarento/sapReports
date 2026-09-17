@@ -83,3 +83,40 @@ to drive the initial column-picker selection.
   affects the per-call `effectiveColumns` field in `ReportDataResponse`.
 - No change to which columns are computed as effective (visibility-by-`visibleWhen` logic
   is unchanged) — only how each is represented.
+
+## Addendum: add `isVisible`
+
+Add a third key, `isVisible`, alongside `columnName`/`isDefault`.
+
+For `DEALER_LEDGER` right now: the `base` group's columns (the ones shown in the reference
+screenshot — Dealer Code, Doc. Type, Doc. Reference No., Doc. Date, Assignment, CCA,
+Text Dec., Narration Veh. Description, Debit Amount, Credit Amount) are `isVisible: true`.
+Every other column — the conditional detail columns (`cblRefNo`, `oeRefNo`, `spRefNo`,
+`acRefNo`, `evRefNo`, `acwshRefNo`) — is `isVisible: false`, even when their group's
+`visibleWhen` flag is set on the request and the column appears in `effectiveColumns`.
+
+```json
+"effectiveColumns": [
+  { "columnName": "dealerCode", "isDefault": true, "isVisible": true },
+  { "columnName": "docType", "isDefault": true, "isVisible": true },
+  { "columnName": "docReferenceNo", "isDefault": true, "isVisible": true },
+  { "columnName": "docDate", "isDefault": true, "isVisible": true },
+  { "columnName": "assignment", "isDefault": true, "isVisible": true },
+  { "columnName": "cca", "isDefault": true, "isVisible": true },
+  { "columnName": "textDec", "isDefault": false, "isVisible": true },
+  { "columnName": "vehicleNarration", "isDefault": false, "isVisible": true },
+  { "columnName": "debit", "isDefault": true, "isVisible": true },
+  { "columnName": "credit", "isDefault": true, "isVisible": true },
+  { "columnName": "cblRefNo", "isDefault": true, "isVisible": false }
+]
+```
+
+### Implementation notes
+
+- `ColumnDefinition` gets a second flag, `visible` (`Boolean`, same null→`true`-default
+  pattern as `defaultVisible`).
+- `dealer-ledger.json`: set `"visible": false` on the `cbl`/`oe`/`sp`/`ac`/`ev`/`acwsh`
+  groups' columns (`cblRefNo`, `oeRefNo`, `spRefNo`, `acRefNo`, `evRefNo`, `acwshRefNo`);
+  leave the `base` group columns unset (defaults to `true`).
+- `EffectiveColumn` record gains `isVisible`: `EffectiveColumn(String columnName, boolean isDefault, boolean isVisible)`.
+- `ReportService.computeEffectiveColumns` emits `column.visible()` as the third arg.

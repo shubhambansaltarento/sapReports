@@ -150,7 +150,7 @@ public class ReportService {
         for (ColumnGroup group : metadata.columnGroups()) {
             if (ConditionEvaluator.evaluate(group.visibleWhen(), parameters)) {
                 for (ColumnDefinition column : group.columns()) {
-                    columns.add(new EffectiveColumn(column.field(), column.defaultVisible()));
+                    columns.add(new EffectiveColumn(column.field(), column.defaultVisible(), column.visible()));
                 }
             }
         }

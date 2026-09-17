@@ -116,7 +116,7 @@
       "label": "CBL Details",
       "visibleWhen": { "field": "withCblDetails", "op": "eq", "value": true },
       "columns": [
-        { "field": "cblRefNo", "label": "CBL Ref No", "dataType": "string", "align": "left", "sortable": false }
+        { "field": "cblRefNo", "label": "CBL Ref No", "dataType": "string", "align": "left", "sortable": false, "visible": false }
       ]
     },
     {
@@ -124,7 +124,7 @@
       "label": "OE Details",
       "visibleWhen": { "field": "withOeDetails", "op": "eq", "value": true },
       "columns": [
-        { "field": "oeRefNo", "label": "OE Ref No", "dataType": "string", "align": "left", "sortable": false }
+        { "field": "oeRefNo", "label": "OE Ref No", "dataType": "string", "align": "left", "sortable": false, "visible": false }
       ]
     },
     {
@@ -132,7 +132,7 @@
       "label": "SP Details",
       "visibleWhen": { "field": "withSpDetails", "op": "eq", "value": true },
       "columns": [
-        { "field": "spRefNo", "label": "SP Ref No", "dataType": "string", "align": "left", "sortable": false }
+        { "field": "spRefNo", "label": "SP Ref No", "dataType": "string", "align": "left", "sortable": false, "visible": false }
       ]
     },
     {
@@ -140,7 +140,7 @@
       "label": "AC Details",
       "visibleWhen": { "field": "withAcDetails", "op": "eq", "value": true },
       "columns": [
-        { "field": "acRefNo", "label": "AC Ref No", "dataType": "string", "align": "left", "sortable": false }
+        { "field": "acRefNo", "label": "AC Ref No", "dataType": "string", "align": "left", "sortable": false, "visible": false }
       ]
     },
     {
@@ -148,7 +148,7 @@
       "label": "EV Details",
       "visibleWhen": { "field": "withEvDetails", "op": "eq", "value": true },
       "columns": [
-        { "field": "evRefNo", "label": "EV Ref No", "dataType": "string", "align": "left", "sortable": false }
+        { "field": "evRefNo", "label": "EV Ref No", "dataType": "string", "align": "left", "sortable": false, "visible": false }
       ]
     },
     {
@@ -156,7 +156,7 @@
       "label": "ACWSH Details",
       "visibleWhen": { "field": "withAcwshDetails", "op": "eq", "value": true },
       "columns": [
-        { "field": "acwshRefNo", "label": "ACWSH Ref No", "dataType": "string", "align": "left", "sortable": false }
+        { "field": "acwshRefNo", "label": "ACWSH Ref No", "dataType": "string", "align": "left", "sortable": false, "visible": false }
       ]
     }
   ],
