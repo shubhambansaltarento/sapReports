@@ -23,6 +23,20 @@
         { "value": "TVSL", "label": "TVS Lucas" }
       ],
       "layout": { "row": 1, "span": 4 }
+    },
+    {
+      "name": "reconciliationDate",
+      "label": "Reconciliation Date",
+      "control": "DATE_RANGE",
+      "dataType": null,
+      "required": true,
+      "validation": {
+        "minDate": "2020-04-01",
+        "maxDate": "$TODAY",
+        "maxRangeDays": 366,
+        "requireBothBounds": true
+      },
+      "layout": { "row": 2, "span": 6 }
     }
   ],
   "columnGroups": [
@@ -32,7 +46,8 @@
       "visibleWhen": null,
       "columns": [
         { "field": "dealerCode", "label": "Dealer Code", "dataType": "string", "align": "left", "sortable": true },
-        { "field": "dealerName", "label": "Dealer Name", "dataType": "string", "align": "left", "sortable": false }
+        { "field": "dealerName", "label": "Dealer Name", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "reconciliationDate", "label": "Reconciliation Date", "dataType": "date", "format": "dd-MM-yyyy", "align": "left", "sortable": true }
       ]
     }
   ],

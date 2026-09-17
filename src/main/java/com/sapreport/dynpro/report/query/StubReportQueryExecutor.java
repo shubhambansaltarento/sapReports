@@ -10,6 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sapreport.dynpro.report.validation.DateRangeValue;
+
 /**
  * Placeholder {@link ReportQueryExecutor} returning canned in-memory data
  * for DEALER_LEDGER and WARRANTY_COST so the API is exercisable end-to-end
@@ -211,8 +213,8 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
 
         Object dealerCode = request.parameters().get("dealerCode");
         Object claimDate = request.parameters().get("claimDate");
-        LocalDate from = claimDateBound(claimDate, "from");
-        LocalDate to = claimDateBound(claimDate, "to");
+        LocalDate from = dateRangeBound(claimDate, "from");
+        LocalDate to = dateRangeBound(claimDate, "to");
 
         List<Map<String, Object>> filtered = allRows.stream()
                 .filter(row -> dealerCode == null || String.valueOf(dealerCode).isBlank()
@@ -249,9 +251,17 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
         List<Map<String, Object>> allRows = buildWarrantyReconcillationRows();
 
         Object dealerCode = request.parameters().get("dealerCode");
+        Object reconciliationDate = request.parameters().get("reconciliationDate");
+        LocalDate from = dateRangeBound(reconciliationDate, "from");
+        LocalDate to = dateRangeBound(reconciliationDate, "to");
+
         List<Map<String, Object>> filtered = allRows.stream()
                 .filter(row -> dealerCode == null || String.valueOf(dealerCode).isBlank()
                         || row.get("dealerCode").equals(String.valueOf(dealerCode)))
+                .filter(row -> {
+                    LocalDate rowDate = LocalDate.parse((String) row.get("reconciliationDate"), ROW_DATE_FORMAT);
+                    return (from == null || !rowDate.isBefore(from)) && (to == null || !rowDate.isAfter(to));
+                })
                 .toList();
 
         int fromIndex = Math.min((request.page() - 1) * request.pageSize(), filtered.size());
@@ -266,19 +276,29 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
     }
 
     private List<Map<String, Object>> buildWarrantyReconcillationRows() {
+        List<Map<String, Object>> rows = new java.util.ArrayList<>();
+        rows.add(warrantyReconcillationRow("05-05-2026"));
+        rows.add(warrantyReconcillationRow("18-05-2026"));
+        rows.add(warrantyReconcillationRow("02-06-2026"));
+        rows.add(warrantyReconcillationRow("20-06-2026"));
+        rows.add(warrantyReconcillationRow("10-07-2026"));
+        rows.add(warrantyReconcillationRow("25-07-2026"));
+        return rows;
+    }
+
+    private Map<String, Object> warrantyReconcillationRow(String reconciliationDate) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("dealerCode", DEALER_CODE);
         row.put("dealerName", "PAWAN SARKAR AUTOMOBILES");
-        return List.of(row);
+        row.put("reconciliationDate", reconciliationDate);
+        return row;
     }
 
-    @SuppressWarnings("unchecked")
-    private LocalDate claimDateBound(Object claimDate, String bound) {
-        if (!(claimDate instanceof Map<?, ?> range)) {
+    private LocalDate dateRangeBound(Object dateRange, String bound) {
+        if (!(dateRange instanceof DateRangeValue range)) {
             return null;
         }
-        Object value = ((Map<String, Object>) range).get(bound);
-        return value == null ? null : LocalDate.parse(String.valueOf(value));
+        return "from".equals(bound) ? range.from() : range.to();
     }
 
     private List<Map<String, Object>> buildWarrantyCostRows() {
