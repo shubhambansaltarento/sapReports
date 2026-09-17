@@ -75,13 +75,14 @@ public class ReportService {
         Map<String, Object> parameters = parameterValidator.validateAndCoerce(metadata, request.parameters());
         enforceCompanyCodeScope(parameters);
 
-        List<String> effectiveColumns = computeEffectiveColumns(metadata, parameters);
+        List<EffectiveColumn> effectiveColumns = computeEffectiveColumns(metadata, parameters);
+        List<String> effectiveColumnNames = effectiveColumns.stream().map(EffectiveColumn::columnName).toList();
         Map<String, ColumnDefinition> columnsByField = metadata.columnGroups().stream()
                 .flatMap(group -> group.columns().stream())
                 .collect(Collectors.toMap(ColumnDefinition::field, column -> column, (a, b) -> a));
 
         List<SortSpec> sort = request.sort() == null ? List.of() : request.sort();
-        sortValidator.validate(sort, effectiveColumns, columnsByField);
+        sortValidator.validate(sort, effectiveColumnNames, columnsByField);
 
         int pageSize = clampPageSize(request.paging(), metadata.paging());
         int page = request.paging() != null && request.paging().page() != null
@@ -89,13 +90,19 @@ public class ReportService {
                 : 1;
 
         ReportQueryRequest queryRequest = new ReportQueryRequest(
-                reportCode, parameters, effectiveColumns, sort, page, pageSize);
+                reportCode, parameters, effectiveColumnNames, sort, page, pageSize);
         ReportQueryResult result = queryExecutor.execute(queryRequest);
 
         List<Map<String, Object>> rows = attachRowIdentity(metadata, result.rows());
 
-        int totalPages = pageSize == 0 ? 0 : (int) Math.ceil(result.totalRows() / (double) pageSize);
-        PagingResponse pagingResponse = new PagingResponse(page, pageSize, result.totalRows(), totalPages);
+        // If the executor returned every row instead of slicing (e.g. UI-controlled
+        // pagination — reports/dealer-ledge/dealer-ledger-pagination-2026-09-16_170000.md),
+        // report a single page covering all rows rather than the requested pageSize.
+        int effectivePageSize = result.rows().size() == result.totalRows() && result.totalRows() > 0
+                ? (int) result.totalRows()
+                : pageSize;
+        int totalPages = effectivePageSize == 0 ? 0 : (int) Math.ceil(result.totalRows() / (double) effectivePageSize);
+        PagingResponse pagingResponse = new PagingResponse(page, effectivePageSize, result.totalRows(), totalPages);
         ResponseMeta meta = new ResponseMeta(Instant.now(), result.dataAsOf(), result.queryMs());
 
         return new ReportDataResponse(metadata.reportCode(), metadata.configVersion(), effectiveColumns,
@@ -138,12 +145,12 @@ public class ReportService {
         }
     }
 
-    private List<String> computeEffectiveColumns(ReportMetadata metadata, Map<String, Object> parameters) {
-        List<String> columns = new ArrayList<>();
+    private List<EffectiveColumn> computeEffectiveColumns(ReportMetadata metadata, Map<String, Object> parameters) {
+        List<EffectiveColumn> columns = new ArrayList<>();
         for (ColumnGroup group : metadata.columnGroups()) {
             if (ConditionEvaluator.evaluate(group.visibleWhen(), parameters)) {
                 for (ColumnDefinition column : group.columns()) {
-                    columns.add(column.field());
+                    columns.add(new EffectiveColumn(column.field(), column.defaultVisible(), column.visible()));
                 }
             }
         }

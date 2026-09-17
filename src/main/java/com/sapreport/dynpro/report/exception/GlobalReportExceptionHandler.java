@@ -4,6 +4,8 @@ import com.sapreport.dynpro.report.api.ErrorResponse;
 import com.sapreport.dynpro.report.validation.ValidationError;
 import com.sapreport.dynpro.report.validation.ValidationException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -21,6 +23,8 @@ import java.util.UUID;
  */
 @RestControllerAdvice(basePackages = "com.sapreport.dynpro.report.api")
 public class GlobalReportExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalReportExceptionHandler.class);
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidation(ValidationException ex, HttpServletRequest request) {
@@ -61,7 +65,9 @@ public class GlobalReportExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
-        return respond(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", List.of(), request);
+        log.error("Unhandled exception on {} {}", request.getMethod(), request.getRequestURI(), ex);
+        List<ValidationError> errors = List.of(new ValidationError("", "UNEXPECTED_ERROR", ex.toString()));
+        return respond(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", errors, request);
     }
 
     private ResponseEntity<ErrorResponse> respond(HttpStatus status, String code, List<ValidationError> errors,

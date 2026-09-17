@@ -16,7 +16,7 @@ public class StubReportCallerContext implements ReportCallerContext {
 
     @Override
     public String dealerCode() {
-        return "1130";
+        return "10015";
     }
 
     @Override

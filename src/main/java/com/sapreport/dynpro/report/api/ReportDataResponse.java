@@ -7,7 +7,7 @@ import java.util.Map;
 public record ReportDataResponse(
         String reportCode,
         String configVersion,
-        List<String> effectiveColumns,
+        List<EffectiveColumn> effectiveColumns,
         List<Map<String, Object>> rows,
         Map<String, Object> totals,
         PagingResponse paging,

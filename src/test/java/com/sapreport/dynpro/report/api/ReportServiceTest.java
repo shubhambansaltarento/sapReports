@@ -36,7 +36,7 @@ class ReportServiceTest {
 
     private ReportService reportService;
 
-    private static final String CONFIG_VERSION = "2026.08.1";
+    private static final String CONFIG_VERSION = "2026.09.3";
 
     @BeforeEach
     void setUp() throws IOException {
@@ -84,15 +84,20 @@ class ReportServiceTest {
     @Test
     void happyPath_returnsRowsAndPaging() {
         ReportDataRequest request = new ReportDataRequest(validParameters(true),
-                new PagingRequest(1, 50), List.of(new SortSpec("postingDate", "asc")), CONFIG_VERSION);
+                new PagingRequest(1, 50), List.of(new SortSpec("docDate", "asc")), CONFIG_VERSION);
 
         ReportDataResponse response = reportService.getData("DEALER_LEDGER", request);
 
         assertThat(response.reportCode()).isEqualTo("DEALER_LEDGER");
         assertThat(response.rows()).isNotEmpty();
         assertThat(response.paging().page()).isEqualTo(1);
-        assertThat(response.paging().pageSize()).isEqualTo(50);
         assertThat(response.paging().totalRows()).isGreaterThan(0);
+        // Pagination is UI-controlled for DEALER_LEDGER (dealer-ledger-pagination spec):
+        // the executor returns every row in one page, so pageSize mirrors totalRows and
+        // totalPages is always 1.
+        assertThat(response.paging().pageSize()).isEqualTo(response.paging().totalRows());
+        assertThat(response.paging().totalPages()).isEqualTo(1);
+        assertThat(response.rows()).hasSize((int) response.paging().totalRows());
     }
 
     @Test
@@ -102,8 +107,10 @@ class ReportServiceTest {
 
         ReportDataResponse response = reportService.getData("DEALER_LEDGER", request);
 
-        assertThat(response.effectiveColumns()).contains("postingDate", "debit", "credit", "runningBalance");
-        assertThat(response.effectiveColumns()).doesNotContain("cblRefNo");
+        assertThat(response.effectiveColumns()).extracting(EffectiveColumn::columnName)
+                .contains("docDate", "debit", "credit");
+        assertThat(response.effectiveColumns()).extracting(EffectiveColumn::columnName)
+                .doesNotContain("cblRefNo");
         assertThat(response.rows()).allSatisfy(row -> assertThat(row).doesNotContainKey("cblRefNo"));
     }
 
@@ -114,7 +121,8 @@ class ReportServiceTest {
 
         ReportDataResponse response = reportService.getData("DEALER_LEDGER", request);
 
-        assertThat(response.effectiveColumns()).contains("cblRefNo");
+        assertThat(response.effectiveColumns()).extracting(EffectiveColumn::columnName)
+                .contains("cblRefNo");
     }
 
     @Test
