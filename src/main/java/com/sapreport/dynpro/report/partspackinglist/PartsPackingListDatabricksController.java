@@ -30,7 +30,7 @@ public class PartsPackingListDatabricksController {
 
     @GetMapping("/config")
     @Operation(summary = "Get parts packing list's parameter metadata",
-            description = "Basic config describing what fetchDatabricksdata expects: dealerCode, fromDate, toDate.")
+            description = "Basic config describing what fetch-data-bricks-data expects: dealerCode, fromDate, toDate.")
     public PartsPackingListConfigResponse getConfig() {
         return new PartsPackingListConfigResponse("PARTS_PACKING_LIST", "Parts Packing List", List.of(
                 new PartsPackingListConfigResponse.ParameterConfig("dealerCode", "Dealer Code", "STRING", true),
@@ -39,7 +39,7 @@ public class PartsPackingListDatabricksController {
         ));
     }
 
-    @PostMapping("/fetchDatabricksdata")
+    @PostMapping("/fetch-data-bricks-data")
     @Operation(summary = "Run the parts packing list query live against Databricks",
             description = "Runs fn_parts_packing_list for the dealerCode/fromDate/toDate given in the request body.")
     public List<Map<String, Object>> fetchDatabricksdata(@RequestBody PartsPackingListRequest request) {

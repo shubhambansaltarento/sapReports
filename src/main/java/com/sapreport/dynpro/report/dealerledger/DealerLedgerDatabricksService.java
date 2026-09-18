@@ -52,7 +52,7 @@ public class DealerLedgerDatabricksService {
         this.clientSecret = clientSecret;
     }
 
-    public List<Map<String, Object>> fetch(String bukrs, String kunnr, LocalDate fromDate, int limit) {
+    public List<Map<String, Object>> fetchDealerLedgerFromBricks(String bukrs, String kunnr, LocalDate fromDate, int limit) {
         String jdbcUrl = "jdbc:databricks://%s:443/default;httpPath=%s;AuthMech=11;Auth_Flow=1;OAuth2ClientId=%s;OAuth2Secret=%s;ssl=1"
                 .formatted(serverHostname, httpPath, clientId, clientSecret);
 
