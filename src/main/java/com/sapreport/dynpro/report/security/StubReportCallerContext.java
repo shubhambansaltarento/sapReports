@@ -26,7 +26,7 @@ public class StubReportCallerContext implements ReportCallerContext {
 
     @Override
     public Set<String> authorizedCompanyCodes() {
-        return Set.of("TVSL");
+        return Set.of("TSL");
     }
 
     @Override
