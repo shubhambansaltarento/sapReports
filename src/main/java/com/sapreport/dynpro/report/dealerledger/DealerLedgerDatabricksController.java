@@ -30,7 +30,7 @@ public class DealerLedgerDatabricksController {
         this.dealerLedgerDatabricksService = dealerLedgerDatabricksService;
     }
 
-    @GetMapping("/fetchDatabricksdata")
+    @GetMapping("/fetch-data-bricks-data")
     @Operation(summary = "Run the dealer ledger query live against Databricks",
             description = "Runs f_dealer_ledger for the given company code/dealer code over a one-month "
                     + "window starting at fromDate. bukrs defaults to TSL, kunnr to 0000010015, fromDate "
@@ -45,6 +45,6 @@ public class DealerLedgerDatabricksController {
             @Parameter(description = "Max rows returned, default 100")
             @RequestParam(required = false, defaultValue = "100") int limit) {
         LocalDate effectiveFromDate = fromDate != null ? fromDate : LocalDate.now().minusMonths(1);
-        return dealerLedgerDatabricksService.fetch(bukrs, kunnr, effectiveFromDate, limit);
+        return dealerLedgerDatabricksService.fetchDealerLedgerFromBricks(bukrs, kunnr, effectiveFromDate, limit);
     }
 }

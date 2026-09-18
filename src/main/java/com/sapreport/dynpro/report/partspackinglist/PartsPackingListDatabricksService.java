@@ -1,4 +1,4 @@
-package com.sapreport.dynpro.report.dealerledger;
+package com.sapreport.dynpro.report.partspackinglist;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,32 +16,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Runs the DEALER_LEDGER query (same {@code f_dealer_ledger} function as
- * {@code DealerLedgerQueryRunner.java} / {@code databricks-query/dealer-ledger.sql})
- * directly against Databricks, for the standalone {@code /dealer-ledger/fetchDatabricksdata}
- * endpoint. A one-off, Spring-managed counterpart to that CLI class.
+ * Runs the PARTS_PACKING_LIST query (same {@code fn_parts_packing_list} function as
+ * {@code PartsPackingListQueryRunner.java} / {@code databricks-query/parts-packing-list.sql})
+ * directly against Databricks, for {@code POST /parts-packing-list/fetchDatabricksdata}.
  */
 @Service
-public class DealerLedgerDatabricksService {
+public class PartsPackingListDatabricksService {
 
-    private static final String QUERY = """
-            SELECT *
-            FROM sap_dynpro.bumblebee.f_dealer_ledger(
-                    CAST(? AS STRING),
-                    CAST(? AS STRING),
-                    CAST(? AS DATE),
-                    ADD_MONTHS(CAST(? AS DATE), 1)
-                 )
-            ORDER BY credit_control_area, sort_grp, post_date, doc_reference_no, line_item
-            LIMIT ?
-            """;
+    private static final String QUERY = "SELECT * FROM sap_dynpro.bumblebee.fn_parts_packing_list(?, ?, ?)";
 
     private final String serverHostname;
     private final String httpPath;
     private final String clientId;
     private final String clientSecret;
 
-    public DealerLedgerDatabricksService(
+    public PartsPackingListDatabricksService(
             @Value("${databricks.server-hostname}") String serverHostname,
             @Value("${databricks.http-path}") String httpPath,
             @Value("${databricks.client-id}") String clientId,
@@ -52,22 +41,20 @@ public class DealerLedgerDatabricksService {
         this.clientSecret = clientSecret;
     }
 
-    public List<Map<String, Object>> fetchDealerLedgerFromBricks(String bukrs, String kunnr, LocalDate fromDate, int limit) {
+    public List<Map<String, Object>> fetch(String dealerCode, LocalDate fromDate, LocalDate toDate) {
         String jdbcUrl = "jdbc:databricks://%s:443/default;httpPath=%s;AuthMech=11;Auth_Flow=1;OAuth2ClientId=%s;OAuth2Secret=%s;ssl=1"
                 .formatted(serverHostname, httpPath, clientId, clientSecret);
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl);
              PreparedStatement statement = connection.prepareStatement(QUERY)) {
-            statement.setString(1, bukrs);
-            statement.setString(2, kunnr);
-            statement.setString(3, fromDate.toString());
-            statement.setString(4, fromDate.toString());
-            statement.setInt(5, limit);
+            statement.setString(1, dealerCode);
+            statement.setString(2, fromDate.toString());
+            statement.setString(3, toDate.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
                 return toRows(resultSet);
             }
         } catch (SQLException e) {
-            throw new DealerLedgerDatabricksQueryException("Dealer ledger Databricks query failed: " + e.getMessage(), e);
+            throw new PartsPackingListDatabricksQueryException("Parts packing list Databricks query failed: " + e.getMessage(), e);
         }
     }
 
