@@ -17,24 +17,25 @@ import java.sql.ResultSetMetaData;
  * DATABRICKS_SERVER_HOSTNAME, DATABRICKS_HTTP_PATH, DATABRICKS_CLIENT_ID,
  * DATABRICKS_CLIENT_SECRET.
  *
- * <p>Usage: {@code java PartsPackingListQueryRunner <dealerCode> <fromDate> <toDate>}
- * e.g. {@code java PartsPackingListQueryRunner 0000010015 2026-08-01 2026-09-01}
+ * <p>Usage: {@code java PartsPackingListQueryRunner <dealerCode> <fromDate> <toDate> [limit]}
+ * e.g. {@code java PartsPackingListQueryRunner 0000010015 2026-08-01 2026-09-01 100}
  */
 public final class PartsPackingListQueryRunner {
 
-    private static final String QUERY = "SELECT * FROM sap_dynpro.bumblebee.fn_parts_packing_list(?, ?, ?)";
+    private static final String QUERY = "SELECT * FROM sap_dynpro.bumblebee.fn_parts_packing_list(?, ?, ?) LIMIT ?";
 
     private PartsPackingListQueryRunner() {
     }
 
     public static void main(String[] args) {
-        if (args.length != 3) {
-            System.err.println("Usage: PartsPackingListQueryRunner <dealerCode> <fromDate> <toDate>");
+        if (args.length != 3 && args.length != 4) {
+            System.err.println("Usage: PartsPackingListQueryRunner <dealerCode> <fromDate> <toDate> [limit]");
             System.exit(1);
         }
         String dealerCode = args[0];
         String fromDate = args[1];
         String toDate = args[2];
+        int limit = args.length == 4 ? Integer.parseInt(args[3]) : 100;
 
         String serverHostname = requireEnv("DATABRICKS_SERVER_HOSTNAME");
         String httpPath = requireEnv("DATABRICKS_HTTP_PATH");
@@ -49,6 +50,7 @@ public final class PartsPackingListQueryRunner {
             statement.setString(1, dealerCode);
             statement.setString(2, fromDate);
             statement.setString(3, toDate);
+            statement.setInt(4, limit);
             try (ResultSet resultSet = statement.executeQuery()) {
                 printResults(resultSet);
             }

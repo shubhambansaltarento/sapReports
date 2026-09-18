@@ -39,7 +39,7 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
     private static final String CCA = "ZTS1";
     private static final DateTimeFormatter ROW_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private static final String PARTS_PACKING_LIST_QUERY =
-            "SELECT * FROM sap_dynpro.bumblebee.fn_parts_packing_list(?, ?, ?)";
+            "SELECT * FROM sap_dynpro.bumblebee.fn_parts_packing_list(?, ?, ?) LIMIT ?";
 
     private final String databricksServerHostname;
     private final String databricksHttpPath;
@@ -290,6 +290,7 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
             statement.setString(1, dealerCode == null ? null : String.valueOf(dealerCode));
             statement.setString(2, from == null ? null : from.toString());
             statement.setString(3, to == null ? null : to.toString());
+            statement.setInt(4, request.pageSize());
             try (ResultSet resultSet = statement.executeQuery()) {
                 rows = toRows(resultSet);
             }

@@ -32,6 +32,6 @@ public class WarrantyCostDatabricksController {
     @Operation(summary = "Run the warranty cost query live against Databricks",
             description = "Runs api_warranty_cost for the dealerCode/fromDate/toDate given in the request body.")
     public List<Map<String, Object>> fetchDataBricksData(@RequestBody WarrantyCostRequest request) {
-        return warrantyCostDatabricksService.fetch(request.dealerCode(), request.fromDate(), request.toDate());
+        return warrantyCostDatabricksService.fetch(request.dealerCode(), request.fromDate(), request.toDate(), request.effectiveLimit());
     }
 }

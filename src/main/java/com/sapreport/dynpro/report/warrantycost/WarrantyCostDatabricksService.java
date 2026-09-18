@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class WarrantyCostDatabricksService {
 
-    private static final String QUERY = "SELECT * FROM sap_dynpro.bumblebee.api_warranty_cost(?, ?, ?)";
+    private static final String QUERY = "SELECT * FROM sap_dynpro.bumblebee.api_warranty_cost(?, ?, ?) LIMIT ?";
 
     private final String serverHostname;
     private final String httpPath;
@@ -41,7 +41,7 @@ public class WarrantyCostDatabricksService {
         this.clientSecret = clientSecret;
     }
 
-    public List<Map<String, Object>> fetch(String dealerCode, LocalDate fromDate, LocalDate toDate) {
+    public List<Map<String, Object>> fetch(String dealerCode, LocalDate fromDate, LocalDate toDate, int limit) {
         String jdbcUrl = "jdbc:databricks://%s:443/default;httpPath=%s;AuthMech=11;Auth_Flow=1;OAuth2ClientId=%s;OAuth2Secret=%s;ssl=1"
                 .formatted(serverHostname, httpPath, clientId, clientSecret);
 
@@ -50,6 +50,7 @@ public class WarrantyCostDatabricksService {
             statement.setString(1, dealerCode);
             statement.setString(2, fromDate.toString());
             statement.setString(3, toDate.toString());
+            statement.setInt(4, limit);
             try (ResultSet resultSet = statement.executeQuery()) {
                 return toRows(resultSet);
             }

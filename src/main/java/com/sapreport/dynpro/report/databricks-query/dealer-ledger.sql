@@ -3,6 +3,7 @@
 --   bukrs      string  company code, e.g. '1000'
 --   kunnr      string  dealer code, e.g. '0000010015'
 --   from_date  date    window start, e.g. '2026-07-17' (one-month half-open window: [from_date, from_date + 1 month))
+--   limit      int     max rows returned, e.g. 100
 SELECT *
 FROM sap_dynpro.bumblebee.f_dealer_ledger(
         CAST(:bukrs     AS STRING),
@@ -11,3 +12,4 @@ FROM sap_dynpro.bumblebee.f_dealer_ledger(
         ADD_MONTHS(CAST(:from_date AS DATE), 1)   -- exclusive, half-open window
      )
 ORDER BY credit_control_area, sort_grp, post_date, doc_reference_no, line_item
+LIMIT :limit
