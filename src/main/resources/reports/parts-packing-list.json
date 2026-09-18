@@ -45,8 +45,16 @@
       "label": "Parts Packing List",
       "visibleWhen": null,
       "columns": [
-        { "field": "dealerCode", "label": "Dealer Code", "dataType": "string", "align": "left", "sortable": true },
-        { "field": "dealerName", "label": "Dealer Name", "dataType": "string", "align": "left", "sortable": false }
+        { "field": "dealer_code", "label": "Dealer Code", "dataType": "string", "align": "left", "sortable": true },
+        { "field": "dealer_name", "label": "Name", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "dealer_city", "label": "City", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "invoice_number", "label": "Invoice Number", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "delivery_number", "label": "Delivery Number", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "case_number", "label": "Case Number", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "carton_box", "label": "Carton Box", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "part_number", "label": "Part No", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "part_description", "label": "Part Description", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "quantity", "label": "Qty", "dataType": "integer", "align": "right", "sortable": false, "aggregate": "SUM" }
       ]
     }
   ],
