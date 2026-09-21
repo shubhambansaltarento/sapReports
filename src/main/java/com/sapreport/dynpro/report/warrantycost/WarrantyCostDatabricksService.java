@@ -1,4 +1,4 @@
-package com.sapreport.dynpro.report.partspackinglist;
+package com.sapreport.dynpro.report.warrantycost;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,21 +16,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Runs the PARTS_PACKING_LIST query (same {@code fn_parts_packing_list} function as
- * {@code PartsPackingListQueryRunner.java} / {@code databricks-query/parts-packing-list.sql})
- * directly against Databricks, for {@code POST /parts-packing-list/fetch-data-bricks-data}.
+ * Runs the WARRANTY_COST query (same {@code api_warranty_cost} function as
+ * {@code WarrantyCostQueryRunner.java} / {@code databricks-query/warranty-cost.sql})
+ * directly against Databricks, for {@code POST /warranty-cost/fetch-data-bricks-data}.
  */
 @Service
-public class PartsPackingListDatabricksService {
+public class WarrantyCostDatabricksService {
 
-    private static final String QUERY = "SELECT * FROM sap_dynpro.bumblebee.fn_parts_packing_list(?, ?, ?) LIMIT ?";
+    private static final String QUERY = "SELECT * FROM sap_dynpro.bumblebee.api_warranty_cost(?, ?, ?) LIMIT ?";
 
     private final String serverHostname;
     private final String httpPath;
     private final String clientId;
     private final String clientSecret;
 
-    public PartsPackingListDatabricksService(
+    public WarrantyCostDatabricksService(
             @Value("${databricks.server-hostname}") String serverHostname,
             @Value("${databricks.http-path}") String httpPath,
             @Value("${databricks.client-id}") String clientId,
@@ -55,7 +55,7 @@ public class PartsPackingListDatabricksService {
                 return toRows(resultSet);
             }
         } catch (SQLException e) {
-            throw new PartsPackingListDatabricksQueryException("Parts packing list Databricks query failed: " + e.getMessage(), e);
+            throw new WarrantyCostDatabricksQueryException("Warranty cost Databricks query failed: " + e.getMessage(), e);
         }
     }
 

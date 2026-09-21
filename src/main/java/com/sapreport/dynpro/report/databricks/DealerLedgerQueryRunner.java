@@ -19,8 +19,8 @@ import java.sql.ResultSetMetaData;
  * DATABRICKS_SERVER_HOSTNAME, DATABRICKS_HTTP_PATH, DATABRICKS_CLIENT_ID,
  * DATABRICKS_CLIENT_SECRET.
  *
- * <p>Usage: {@code java DealerLedgerQueryRunner <bukrs> <kunnr> <fromDate>}
- * e.g. {@code java DealerLedgerQueryRunner 1000 0000010015 2026-07-17}
+ * <p>Usage: {@code java DealerLedgerQueryRunner <bukrs> <kunnr> <fromDate> [limit]}
+ * e.g. {@code java DealerLedgerQueryRunner 1000 0000010015 2026-07-17 100}
  */
 public final class DealerLedgerQueryRunner {
 
@@ -33,19 +33,21 @@ public final class DealerLedgerQueryRunner {
                     ADD_MONTHS(CAST(? AS DATE), 1)
                  )
             ORDER BY credit_control_area, sort_grp, post_date, doc_reference_no, line_item
+            LIMIT ?
             """;
 
     private DealerLedgerQueryRunner() {
     }
 
     public static void main(String[] args) {
-        if (args.length != 3) {
-            System.err.println("Usage: DealerLedgerQueryRunner <bukrs> <kunnr> <fromDate>");
+        if (args.length != 3 && args.length != 4) {
+            System.err.println("Usage: DealerLedgerQueryRunner <bukrs> <kunnr> <fromDate> [limit]");
             System.exit(1);
         }
         String bukrs = args[0];
         String kunnr = args[1];
         String fromDate = args[2];
+        int limit = args.length == 4 ? Integer.parseInt(args[3]) : 100;
 
         String serverHostname = requireEnv("DATABRICKS_SERVER_HOSTNAME");
         String httpPath = requireEnv("DATABRICKS_HTTP_PATH");
@@ -61,6 +63,7 @@ public final class DealerLedgerQueryRunner {
             statement.setString(2, kunnr);
             statement.setString(3, fromDate);
             statement.setString(4, fromDate);
+            statement.setInt(5, limit);
             try (ResultSet resultSet = statement.executeQuery()) {
                 printResults(resultSet);
             }

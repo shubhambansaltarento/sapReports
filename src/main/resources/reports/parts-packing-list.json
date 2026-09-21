@@ -1,0 +1,63 @@
+{
+  "reportCode": "PARTS_PACKING_LIST",
+  "title": "Parts Packing List",
+  "configVersion": "2026.09.1",
+  "parameters": [
+    {
+      "name": "dealerCode",
+      "label": "Dealer Code",
+      "control": "TEXT",
+      "dataType": "STRING",
+      "required": false,
+      "defaultValue": null,
+      "layout": { "row": 1, "span": 4 }
+    },
+    {
+      "name": "companyCode",
+      "label": "Company Code",
+      "control": "SELECT",
+      "dataType": "STRING",
+      "required": true,
+      "defaultValue": "TSL",
+      "options": [
+        { "value": "TSL", "label": "TVS Lucas" }
+      ],
+      "layout": { "row": 1, "span": 4 }
+    },
+    {
+      "name": "packingDate",
+      "label": "Packing Date",
+      "control": "DATE_RANGE",
+      "dataType": null,
+      "required": true,
+      "validation": {
+        "minDate": "2020-04-01",
+        "maxDate": "$TODAY",
+        "maxRangeDays": 366,
+        "requireBothBounds": true
+      },
+      "layout": { "row": 2, "span": 6 }
+    }
+  ],
+  "columnGroups": [
+    {
+      "key": "base",
+      "label": "Parts Packing List",
+      "visibleWhen": null,
+      "columns": [
+        { "field": "dealer_code", "label": "Dealer Code", "dataType": "string", "align": "left", "sortable": true },
+        { "field": "dealer_name", "label": "Name", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "dealer_city", "label": "City", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "invoice_number", "label": "Invoice Number", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "delivery_number", "label": "Delivery Number", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "case_number", "label": "Case Number", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "carton_box", "label": "Carton Box", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "part_number", "label": "Part No", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "part_description", "label": "Part Description", "dataType": "string", "align": "left", "sortable": false },
+        { "field": "quantity", "label": "Qty", "dataType": "integer", "align": "right", "sortable": false, "aggregate": "SUM" }
+      ]
+    }
+  ],
+  "export": { "formats": ["XLSX", "PDF"] },
+  "paging": { "defaultPageSize": 50, "maxPageSize": 1000 }
+}

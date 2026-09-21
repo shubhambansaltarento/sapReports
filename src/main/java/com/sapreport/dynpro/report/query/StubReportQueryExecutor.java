@@ -1,11 +1,19 @@
 package com.sapreport.dynpro.report.query;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +38,24 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
     private static final String DEALER_CODE = "10015";
     private static final String CCA = "ZTS1";
     private static final DateTimeFormatter ROW_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private static final String PARTS_PACKING_LIST_QUERY =
+            "SELECT * FROM sap_dynpro.bumblebee.fn_parts_packing_list(?, ?, ?) LIMIT ?";
+
+    private final String databricksServerHostname;
+    private final String databricksHttpPath;
+    private final String databricksClientId;
+    private final String databricksClientSecret;
+
+    public StubReportQueryExecutor(
+            @Value("${databricks.server-hostname}") String databricksServerHostname,
+            @Value("${databricks.http-path}") String databricksHttpPath,
+            @Value("${databricks.client-id}") String databricksClientId,
+            @Value("${databricks.client-secret}") String databricksClientSecret) {
+        this.databricksServerHostname = databricksServerHostname;
+        this.databricksHttpPath = databricksHttpPath;
+        this.databricksClientId = databricksClientId;
+        this.databricksClientSecret = databricksClientSecret;
+    }
 
     @Override
     public ReportQueryResult execute(ReportQueryRequest request) {
@@ -38,6 +64,9 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
         }
         if ("WARRANTY_RECONCILLATION".equals(request.reportCode())) {
             return executeWarrantyReconcillation(request);
+        }
+        if ("PARTS_PACKING_LIST".equals(request.reportCode())) {
+            return executePartsPackingList(request);
         }
         if (!"DEALER_LEDGER".equals(request.reportCode())) {
             return new ReportQueryResult(List.of(), Map.of(), 0, Instant.now(), 0);
@@ -245,6 +274,49 @@ public class StubReportQueryExecutor implements ReportQueryExecutor {
                 .toList();
 
         return new ReportQueryResult(projected, totals, filtered.size(), Instant.now(), 4);
+    }
+
+    private ReportQueryResult executePartsPackingList(ReportQueryRequest request) {
+        Object dealerCode = request.parameters().get("dealerCode");
+        LocalDate from = dateRangeBound(request.parameters().get("packingDate"), "from");
+        LocalDate to = dateRangeBound(request.parameters().get("packingDate"), "to");
+
+        String jdbcUrl = "jdbc:databricks://%s:443/default;httpPath=%s;AuthMech=11;Auth_Flow=1;OAuth2ClientId=%s;OAuth2Secret=%s;ssl=1"
+                .formatted(databricksServerHostname, databricksHttpPath, databricksClientId, databricksClientSecret);
+
+        List<Map<String, Object>> rows;
+        try (Connection connection = DriverManager.getConnection(jdbcUrl);
+             PreparedStatement statement = connection.prepareStatement(PARTS_PACKING_LIST_QUERY)) {
+            statement.setString(1, dealerCode == null ? null : String.valueOf(dealerCode));
+            statement.setString(2, from == null ? null : from.toString());
+            statement.setString(3, to == null ? null : to.toString());
+            statement.setInt(4, request.pageSize());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                rows = toRows(resultSet);
+            }
+        } catch (SQLException e) {
+            throw new PartsPackingListQueryException("Parts packing list Databricks query failed: " + e.getMessage(), e);
+        }
+
+        List<Map<String, Object>> projected = rows.stream()
+                .map(row -> project(row, request.effectiveColumns()))
+                .toList();
+
+        return new ReportQueryResult(projected, Map.of(), projected.size(), Instant.now(), 0);
+    }
+
+    private List<Map<String, Object>> toRows(ResultSet resultSet) throws SQLException {
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+        List<Map<String, Object>> rows = new ArrayList<>();
+        while (resultSet.next()) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            for (int i = 1; i <= columnCount; i++) {
+                row.put(metaData.getColumnLabel(i), resultSet.getObject(i));
+            }
+            rows.add(row);
+        }
+        return rows;
     }
 
     private ReportQueryResult executeWarrantyReconcillation(ReportQueryRequest request) {
